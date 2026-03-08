@@ -23,7 +23,7 @@ Prints the values and reacts to button presses.
 3.  Hardware Setup The Arduino Nano was connected to three push buttons
     and two potentiometers.
 
-Buttons: Three push buttons were connected to digital pins 2, 3, and 4.
+Buttons: four push buttons were connected to digital pins 2, 3, 4, and 5.
 Each button was wired between the input pin and ground. The Arduino used
 internal pull‑up resistors so the pins remain HIGH when not pressed and
 go LOW when pressed.
@@ -48,7 +48,7 @@ which provided both power and serial communication.
 
 9.  Sends the data as a comma‑separated string over the serial port.
 
-Example transmitted data format: 1,0,1,523,812
+Example transmitted data format: 1,0,1,0,523,812
 
 This represents: Button1, Button2, Button3, Pot1, Pot2
 

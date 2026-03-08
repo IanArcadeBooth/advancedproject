@@ -40,7 +40,7 @@ int setupSerial(const char *portName);
  * @return: none
  * side effects: prints information to the terminal
  */
-void handleInput(int b1, int b2, int b3, int p1, int p2);
+void handleInput(int b1, int b2, int b3, int b4, int p1, int p2);
 
 /*
  * Description: Main program loop. Opens the serial port,
@@ -57,14 +57,14 @@ int main(void) {
     int index = 0;
     char ch;
 
-    int b1, b2, b3, p1, p2;
+    int b1, b2, b3, b4, p1, p2;
 
     fd = setupSerial(SERIAL_PORT);
     if (fd < 0) {
         return 1;
     }
 
-    printf("Listening on %s\n", SERIAL_PORT);
+printf("Listening on %s\n", SERIAL_PORT);
 
     while (1) {
 
@@ -78,11 +78,11 @@ int main(void) {
                 index = 0;
 
                 /* Parse comma-separated values */
-                if (sscanf(buf, "%d,%d,%d,%d,%d", &b1, &b2, &b3, &p1, &p2) == 5) {
+                if (sscanf(buf, "%d,%d,%d,%d,%d,%d", &b1, &b2, &b3, &b4, &p1, &p2) == 6) {
                     /* Scale potentiometer values from 0–1023 to 0–100 */
     p1 = (p1 * 100) / 1023;
     p2 = (p2 * 100) / 1023;
-                    handleInput(b1, b2, b3, p1, p2);
+                    handleInput(b1, b2, b3, b4, p1, p2);
                 }
 
             } else {
@@ -142,8 +142,8 @@ int setupSerial(const char *portName) {
  * Description: Displays the current input values and reacts
  * to button presses.
  */
-void handleInput(int b1, int b2, int b3, int p1, int p2) {
+void handleInput(int b1, int b2, int b3, int b4, int p1, int p2) {
 
-    printf("B1=%d B2=%d B3=%d P1=%d P2=%d\n", b1, b2, b3, p1, p2);
+    printf("B1=%d B2=%d B3=%d B4 = %d P1=%d P2=%d\n", b1, b2, b3, b4, p1, p2);
     printf("\n");
 }
