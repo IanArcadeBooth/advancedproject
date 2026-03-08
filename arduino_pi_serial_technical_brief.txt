@@ -1,0 +1,99 @@
+Technical Brief – Arduino to Raspberry Pi Input Interface Author: Ian
+Booth Date: 2026/03/08
+
+1.  Objective The objective of this activity was to create a simple
+    hardware interface allowing a Raspberry Pi to receive user input
+    from an Arduino Nano. The Arduino reads three push buttons and two
+    potentiometers and sends their values to the Raspberry Pi over a USB
+    serial connection. A C program running on the Raspberry Pi reads the
+    serial data, parses it, and reacts to the inputs.
+
+2.  System Overview The system consists of two main components:
+
+Arduino Nano - Reads hardware inputs from buttons and potentiometers. -
+Converts analog signals from the potentiometers using the built‑in
+ADC. - Sends the input data to the Raspberry Pi through a serial
+connection.
+
+Raspberry Pi - Receives serial data from the Arduino through a USB
+connection. - Reads the incoming data one character at a time. -
+Reconstructs complete lines of data and parses them into variables. -
+Prints the values and reacts to button presses.
+
+3.  Hardware Setup The Arduino Nano was connected to three push buttons
+    and two potentiometers.
+
+Buttons: Three push buttons were connected to digital pins 2, 3, and 4.
+Each button was wired between the input pin and ground. The Arduino used
+internal pull‑up resistors so the pins remain HIGH when not pressed and
+go LOW when pressed.
+
+Potentiometers: Two potentiometers were connected to analog inputs A0
+and A1. Each potentiometer had: - One outer pin connected to 5V - One
+outer pin connected to GND - The middle pin connected to the analog
+input
+
+The Arduino Nano was connected to the Raspberry Pi using a USB cable,
+which provided both power and serial communication.
+
+4.  Arduino Software The Arduino program performs the following tasks:
+
+5.  Initializes serial communication at 9600 baud.
+
+6.  Configures the three button pins as INPUT_PULLUP.
+
+7.  Reads the button states using digitalRead().
+
+8.  Reads potentiometer values using analogRead().
+
+9.  Sends the data as a comma‑separated string over the serial port.
+
+Example transmitted data format: 1,0,1,523,812
+
+This represents: Button1, Button2, Button3, Pot1, Pot2
+
+5.  Raspberry Pi Software A C program running on the Raspberry Pi
+    performs the following tasks:
+
+6.  Opens the serial port device (for example /dev/ttyUSB0).
+
+7.  Configures the port settings using the termios library.
+
+8.  Reads incoming characters from the serial port.
+
+9.  Stores characters in a buffer until a newline is received.
+
+10. Uses sscanf() to parse the comma‑separated values.
+
+11. Stores the parsed values in variables representing the buttons and
+    potentiometers.
+
+The potentiometer values were then scaled from the Arduino’s 0–1023
+range to a 0–100 range using:
+
+value = (value * 100) / 1023
+
+This makes the analog input easier to interpret as a percentage.
+
+6.  Program Behavior Once the data is parsed, the Raspberry Pi program
+    prints the current values and checks for button presses. Since the
+    Arduino uses internal pull‑ups, a button press appears as a value
+    of 0. The program also categorizes potentiometer values into simple
+    ranges such as low, medium, or high.
+
+This demonstrates how a Raspberry Pi can receive real‑time hardware
+input from a microcontroller.
+
+7.  Results The system successfully transmitted input data from the
+    Arduino Nano to the Raspberry Pi. The Raspberry Pi program was able
+    to read the serial data stream, parse the input values, and respond
+    accordingly. This confirms that USB serial communication between the
+    Arduino and Raspberry Pi is a reliable method for integrating
+    external input devices.
+
+8.  Future Improvements Possible improvements to this system include:
+
+-   Adding input smoothing or filtering for the potentiometers
+-   Detecting and reacting only when inputs change
+-   Expanding the system to control motors, displays, or other hardware
+-   Logging input data to files for analysis
