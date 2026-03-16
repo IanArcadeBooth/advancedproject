@@ -4,9 +4,11 @@
  * Date: 2026/03/08
  * Description: This program reads button and potentiometer data
  * sent from an Arduino Nano over USB serial. The Arduino sends
- * comma-separated values representing three button states and
+ * comma-separated values representing four button states and
  * two potentiometer readings. The Raspberry Pi reads each line,
- * parses the values, and prints simple status messages.
+ * parses the values, scales the potentiometer values from 0.0
+ * to 1.0, and writes them to inputs.txt when that file does
+ * not already exist.
  */
 
 #include <stdio.h>
@@ -19,75 +21,62 @@
 #define SERIAL_PORT "/dev/ttyUSB0"
 #define BAUD B9600
 #define BUF_SIZE 256
+#define INPUT_FILE "inputs.txt"
 
 /*
  * Description: Opens and configures the serial port used to
  * communicate with the Arduino.
- * @param portName: serial device path (ex: /dev/ttyUSB0)
- * @return: file descriptor for the serial port, or -1 on error
- * side effects: configures serial communication settings
+ * @param portName: serial device path
+ * @return: file descriptor for serial port, or -1 on error
  */
 int setupSerial(const char *portName);
 
 /*
- * Description: Processes parsed button and potentiometer data
- * and prints simple status messages.
+ * Description: Writes one complete set of button and potentiometer
+ * values to inputs.txt if the file does not already exist.
  * @param b1: button 1 state
  * @param b2: button 2 state
  * @param b3: button 3 state
- * @param p1: potentiometer 1 value
- * @param p2: potentiometer 2 value
+ * @param b4: button 4 state
+ * @param p1: potentiometer 1 value from 0.0 to 1.0
+ * @param p2: potentiometer 2 value from 0.0 to 1.0
  * @return: none
- * side effects: prints information to the terminal
  */
-void handleInput(int b1, int b2, int b3, int b4, int p1, int p2);
+void handleInput(int b1, int b2, int b3, int b4, double p1, double p2);
 
-/*
- * Description: Main program loop. Opens the serial port,
- * reads incoming characters, rebuilds lines of data from
- * the Arduino, and parses the values into variables.
- * @param: none
- * @return: returns 0 if program exits normally
- * side effects: continuously reads serial data
- */
-int main(void) {
-
+int main(void)
+{
     int fd;
     char buf[BUF_SIZE];
     int index = 0;
     char ch;
 
-    int b1, b2, b3, b4, p1, p2;
+    int b1, b2, b3, b4;
+    int rawP1, rawP2;
+    double p1, p2;
 
     fd = setupSerial(SERIAL_PORT);
     if (fd < 0) {
         return 1;
     }
 
-printf("Listening on %s\n", SERIAL_PORT);
-
     while (1) {
-
-        /* Read one character at a time from the serial port */
         if (read(fd, &ch, 1) > 0) {
 
-            /* When a newline arrives we have a full message */
             if (ch == '\n') {
-
                 buf[index] = '\0';
                 index = 0;
 
-                /* Parse comma-separated values */
-                if (sscanf(buf, "%d,%d,%d,%d,%d,%d", &b1, &b2, &b3, &b4, &p1, &p2) == 6) {
-                    /* Scale potentiometer values from 0–1023 to 0–100 */
-    p1 = (p1 * 100) / 1023;
-    p2 = (p2 * 100) / 1023;
+                if (sscanf(buf, "%d,%d,%d,%d,%d,%d",
+                           &b1, &b2, &b3, &b4, &rawP1, &rawP2) == 6) {
+
+                    p1 = rawP1 / 1023.0;
+                    p2 = rawP2 / 1023.0;
+
                     handleInput(b1, b2, b3, b4, p1, p2);
                 }
-
-            } else {
-
-                /* Store characters until newline */
+            }
+            else {
                 if (ch != '\r' && index < BUF_SIZE - 1) {
                     buf[index++] = ch;
                 }
@@ -99,12 +88,8 @@ printf("Listening on %s\n", SERIAL_PORT);
     return 0;
 }
 
-/*
- * Description: Initializes the serial port and sets the
- * communication parameters.
- */
-int setupSerial(const char *portName) {
-
+int setupSerial(const char *portName)
+{
     int fd;
     struct termios options;
 
@@ -138,12 +123,21 @@ int setupSerial(const char *portName) {
     return fd;
 }
 
-/*
- * Description: Displays the current input values and reacts
- * to button presses.
- */
-void handleInput(int b1, int b2, int b3, int b4, int p1, int p2) {
+void handleInput(int b1, int b2, int b3, int b4, double p1, double p2)
+{
+    FILE *file;
 
-    printf("B1=%d B2=%d B3=%d B4 = %d P1=%d P2=%d\n", b1, b2, b3, b4, p1, p2);
-    printf("\n");
+    //Wait until physics has deleted the old input file
+    while (access(INPUT_FILE, F_OK) == 0) {
+        usleep(5000);
+    }
+
+    file = fopen(INPUT_FILE, "w");
+    if (file == NULL) {
+        perror("Could not open inputs.txt");
+        return;
+    }
+
+    fprintf(file, "%d %d %d %d %.3f %.3f\n", b1, b2, b3, b4, p1, p2);
+    fclose(file);
 }
