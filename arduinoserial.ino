@@ -1,7 +1,6 @@
 #define BUTTPIN1 2
 #define BUTTPIN2 3
 #define BUTTPIN3 4
-#define BUTTPIN4 5
 #define POTPIN1 A0
 #define POTPIN2 A1
 
@@ -10,14 +9,12 @@ void setup() {
   pinMode(BUTTPIN1, INPUT_PULLUP);
   pinMode(BUTTPIN2, INPUT_PULLUP);
   pinMode(BUTTPIN3, INPUT_PULLUP);
-  pinMode(BUTTPIN4, INPUT_PULLUP);
 }
 
 void loop() {
   int b1 = digitalRead(BUTTPIN1);
   int b2 = digitalRead(BUTTPIN2);
   int b3 = digitalRead(BUTTPIN3);
-  int b4 = digitalRead(BUTTPIN4);
   int p1 = analogRead(POTPIN1);
   int p2 = analogRead(POTPIN2);
 
@@ -26,8 +23,6 @@ void loop() {
   Serial.print(b2);
   Serial.print(",");
   Serial.print(b3);
-  Serial.print(",");
-  Serial.print(b4);
   Serial.print(",");
   Serial.print(p1);
   Serial.print(",");
