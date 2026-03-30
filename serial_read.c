@@ -1,14 +1,10 @@
 /*
  * File: serial_read.c
  * Author: Ian Booth
- * Date: 2026/03/08
- * Description: This program reads button and potentiometer data
- * sent from an Arduino Nano over USB serial. The Arduino sends
- * comma-separated values representing four button states and
- * two potentiometer readings. The Raspberry Pi reads each line,
- * parses the values, scales the potentiometer values from 0.0
- * to 1.0, and writes them to inputs.txt when that file does
- * not already exist.
+ * Date: 2026/03/29
+ * Description: Reads button and potentiometer data from Arduino,
+ * stores the most recent values, and writes them to inputs.txt
+ * only when the previous file has been removed.
  */
 
 #include <stdio.h>
@@ -24,6 +20,18 @@
 #define INPUT_FILE "inputs.txt"
 
 /*
+ * Description: Stores one complete set of input values
+ */
+typedef struct
+{
+    int b1;
+    int b2;
+    int b3;
+    double p1;
+    double p2;
+} InputSet;
+
+/*
  * Description: Opens and configures the serial port used to
  * communicate with the Arduino.
  * @param portName: serial device path
@@ -32,74 +40,88 @@
 int setupSerial(const char *portName);
 
 /*
- * Description: Writes one complete set of button and potentiometer
- * values to inputs.txt if the file does not already exist.
- * @param b1: button 1 state
- * @param b2: button 2 state
- * @param b3: button 3 state
- * @param b4: button 4 state
- * @param p1: potentiometer 1 value from 0.0 to 1.0
- * @param p2: potentiometer 2 value from 0.0 to 1.0
+ * Description: Attempts to write the most recent input set
+ * to inputs.txt if the file does not already exist.
+ * @param latestInput: pointer to newest input values
+ * @param hasPendingInput: flag indicating new data is available
  * @return: none
+ * side effects: may create inputs.txt and clear pending flag
  */
-void handleInput(int b1, int b2, int b3, int b4, double p1, double p2);
+void tryWriteLatestInput(const InputSet *latestInput, int *hasPendingInput);
 
 int main(void)
 {
-    int fd;
+    int serialFd;
     char buf[BUF_SIZE];
     int index = 0;
     char ch;
 
-    int b1, b2, b3, b4;
     int rawP1, rawP2;
-    double p1, p2;
+    InputSet latestInput;
 
-    fd = setupSerial(SERIAL_PORT);
-    if (fd < 0) {
+    int hasPendingInput = 0; // 1 = new data ready to write
+
+    serialFd = setupSerial(SERIAL_PORT);
+    if (serialFd < 0)
+    {
         return 1;
     }
 
-    while (1) {
-        if (read(fd, &ch, 1) > 0) {
-
-            if (ch == '\n') {
+    while (1)
+    {
+        // Read serial input one character at a time
+        if (read(serialFd, &ch, 1) > 0)
+        {
+            if (ch == '\n')
+            {
                 buf[index] = '\0';
                 index = 0;
 
-                if (sscanf(buf, "%d,%d,%d,%d,%d,%d",
-                           &b1, &b2, &b3, &b4, &rawP1, &rawP2) == 6) {
+                // Parse incoming CSV line
+                if (sscanf(buf, "%d,%d,%d,%d,%d",
+                           &latestInput.b1,
+                           &latestInput.b2,
+                           &latestInput.b3,
+                           &rawP1,
+                           &rawP2) == 5)
+                {
+                    // Scale potentiometer values
+                    latestInput.p1 = rawP1 / 1023.0;
+                    latestInput.p2 = rawP2 / 1023.0;
 
-                    p1 = rawP1 / 1023.0;
-                    p2 = rawP2 / 1023.0;
-
-                    handleInput(b1, b2, b3, b4, p1, p2);
+                    hasPendingInput = 1; // store latest data
                 }
             }
-            else {
-                if (ch != '\r' && index < BUF_SIZE - 1) {
+            else
+            {
+                if (ch != '\r' && index < BUF_SIZE - 1)
+                {
                     buf[index++] = ch;
                 }
             }
         }
+
+        // Only writes when file is gone, never blocks
+        tryWriteLatestInput(&latestInput, &hasPendingInput);
     }
 
-    close(fd);
+    close(serialFd);
     return 0;
 }
 
 int setupSerial(const char *portName)
 {
-    int fd;
+    int serialFd;
     struct termios options;
 
-    fd = open(portName, O_RDWR | O_NOCTTY);
-    if (fd == -1) {
+    serialFd = open(portName, O_RDWR | O_NOCTTY);
+    if (serialFd == -1)
+    {
         perror("Could not open serial port");
         return -1;
     }
 
-    tcgetattr(fd, &options);
+    tcgetattr(serialFd, &options);
 
     cfsetispeed(&options, BAUD);
     cfsetospeed(&options, BAUD);
@@ -117,27 +139,37 @@ int setupSerial(const char *portName)
     options.c_cc[VMIN] = 1;
     options.c_cc[VTIME] = 0;
 
-    tcflush(fd, TCIFLUSH);
-    tcsetattr(fd, TCSANOW, &options);
+    tcflush(serialFd, TCIFLUSH);
+    tcsetattr(serialFd, TCSANOW, &options);
 
-    return fd;
+    return serialFd;
 }
 
-void handleInput(int b1, int b2, int b3, int b4, double p1, double p2)
+void tryWriteLatestInput(const InputSet *latestInput, int *hasPendingInput)
 {
     FILE *file;
 
-    //Wait until physics has deleted the old input file
-    while (access(INPUT_FILE, F_OK) == 0) {
-        usleep(5000);
-    }
+    if (*hasPendingInput == 0)
+        return; // nothing new
+
+    if (access(INPUT_FILE, F_OK) == 0)
+        return; // old file still exists
 
     file = fopen(INPUT_FILE, "w");
-    if (file == NULL) {
+    if (file == NULL)
+    {
         perror("Could not open inputs.txt");
         return;
     }
 
-    fprintf(file, "%d %d %d %d %.3f %.3f\n", b1, b2, b3, b4, p1, p2);
+    fprintf(file, "%d %d %d %.3f %.3f\n",
+            latestInput->b1,
+            latestInput->b2,
+            latestInput->b3,
+            latestInput->p1,
+            latestInput->p2);
+
     fclose(file);
+
+    *hasPendingInput = 0; // mark as written
 }
