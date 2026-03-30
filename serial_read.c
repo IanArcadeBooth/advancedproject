@@ -76,7 +76,7 @@ int main(void)
             {
                 buf[index] = '\0';
                 index = 0;
-
+                
                 // Parse incoming CSV line
                 if (sscanf(buf, "%d,%d,%d,%d,%d",
                            &latestInput.b1,

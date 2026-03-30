@@ -31,27 +31,27 @@ int main()
     
     // Setup structures for time tracking            
     struct timespec T1, T2;
-    clock_gettime(CLOCK_MONOTONIC, &T1);
     
-    //TODO: have startup sequence with land zone sizing
     FILE* fp;
     Buttons inputs;
-    
-    while (!inputs.start)
+    inputs.start = 1;    
+ 
+    while (inputs.start)
     {
         while ((fp = fopen("inputs.txt", "r")) == NULL){} // Wait until file successfully opened
-        fscanf(fp, "%d, %d, %d, %lf, %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+        fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
         fclose(fp);
         remove("inputs.txt");
     }    
    
+    clock_gettime(CLOCK_MONOTONIC, &T1);
     // Main physics loop, runs until land/crash
     while (yPos > 0)
     {
         // Read Inputs
         while ((fp = fopen("inputs.txt", "r")) == NULL){} // Wait until file successfully opened
-        fscanf(fp, "%d, %d, %d, %lf, %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone); 
-        sideThrust = (inputs.right - inputs.left);
+        fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone); 
+        sideThrust = (inputs.left - inputs.right);
         fclose(fp);
         remove("inputs.txt");
 
@@ -65,7 +65,7 @@ int main()
         yPos = yPos + (yVel * deltaTime);
         yVel = yVel - (gravity * deltaTime) + (maxThrust * inputs.thrust * deltaTime);
         xVel += sideThrust * deltaTime;
-
+        
         printf("Position: (%lf, %lf), Velocity: (%lf, %lf), Time: %lf\n", xPos, yPos, xVel, yVel, simTime); 
     }
 }
