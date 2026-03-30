@@ -8,32 +8,62 @@ const double nsMultiplier = 0.000000001;
 
 double deltaT(struct timespec*, struct timespec*);
 
+typedef struct BUTTONS
+{
+    int start;
+    int left;
+    int right;
+    double thrust;
+    double landZone;
+}Buttons;
+
 int main()
 {
+
     // Setup initial conditions of variables
     double xVel = 1.6;
     double yVel = 0;
     double xPos = 0;
     double yPos = 100;
-    double thrust = 0; // Range 0 - 1 for power of main thruster
     int sideThrust = 0; // -1 if right thrusters on, or +1 if left thrusters on
+    double deltaTime = 0; // Time between frames
     double simTime = 0; // Keeps track of how long sim has been running (just for debugging atm)
     
     // Setup structures for time tracking            
     struct timespec T1, T2;
     clock_gettime(CLOCK_MONOTONIC, &T1);
-
+    
+    //TODO: have startup sequence with land zone sizing
+    FILE* fp;
+    Buttons inputs;
+    
+    while (!inputs.start)
+    {
+        while ((fp = fopen("inputs.txt", "r")) == NULL){} // Wait until file successfully opened
+        fscanf(fp, "%d, %d, %d, %lf, %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+        fclose(fp);
+        remove("inputs.txt");
+    }    
+   
+    // Main physics loop, runs until land/crash
     while (yPos > 0)
     {
+        // Read Inputs
+        while ((fp = fopen("inputs.txt", "r")) == NULL){} // Wait until file successfully opened
+        fscanf(fp, "%d, %d, %d, %lf, %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone); 
+        sideThrust = (inputs.right - inputs.left);
+        fclose(fp);
+        remove("inputs.txt");
+
         clock_gettime(CLOCK_MONOTONIC, &T2); // Get current time
-        double deltaTime = deltaT(&T1, &T2); // Calculate time since last here
+        deltaTime = deltaT(&T1, &T2); // Calculate time since last here
         clock_gettime(CLOCK_MONOTONIC, &T1); // Save time last here
         simTime += deltaTime;
 
         // Update position and velocity
         xPos = xPos + (xVel * deltaTime);
         yPos = yPos + (yVel * deltaTime);
-        yVel = yVel - (gravity * deltaTime) + (maxThrust * thrust * deltaTime);
+        yVel = yVel - (gravity * deltaTime) + (maxThrust * inputs.thrust * deltaTime);
         xVel += sideThrust * deltaTime;
 
         printf("Position: (%lf, %lf), Velocity: (%lf, %lf), Time: %lf\n", xPos, yPos, xVel, yVel, simTime); 
