@@ -1,12 +1,11 @@
 #include <time.h>
 #include <stdio.h>
+#include <unistd.h>
 
 const double gravity = 1.6;
 const double maxThrust = 2.98; 
 const double sideThrust = 0.116;
 const double nsMultiplier = 0.000000001;
-
-double deltaT(struct timespec*, struct timespec*);
 
 typedef struct BUTTONS
 {
@@ -16,6 +15,9 @@ typedef struct BUTTONS
     double thrust;
     double landZone;
 }Buttons;
+
+void writeInfo(FILE*, Buttons*, double, double, double, double);
+double deltaT(struct timespec*, struct timespec*);
 
 int main()
 {
@@ -42,6 +44,7 @@ int main()
         fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
         fclose(fp);
         remove("inputs.txt");
+        writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
     }    
    
     clock_gettime(CLOCK_MONOTONIC, &T1);
@@ -66,8 +69,18 @@ int main()
         yVel = yVel - (gravity * deltaTime) + (maxThrust * inputs.thrust * deltaTime);
         xVel += sideThrust * deltaTime;
         
-        printf("Position: (%lf, %lf), Velocity: (%lf, %lf), Time: %lf\n", xPos, yPos, xVel, yVel, simTime); 
+        writeInfo(fp, &inputs, xPos, yPos, xVel, yVel); 
     }
+}
+
+void writeInfo(FILE* fp, Buttons* inputs, double xPos, double yPos, double xVel, double yVel)
+{
+    if (access("rocketInfo.txt", F_OK) == 0)
+    {
+        return; // Previous info has not yet been read
+    }
+    fp = fopen("rocketInfo.txt", "w");
+    fprintf(fp, "%lf %lf %lf %lf %lf %lf", xPos, yPos, xVel, yVel, inputs->thrust, inputs->landZone);
 }
 
 //Returns the difference between two times in seconds
