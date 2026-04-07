@@ -240,7 +240,7 @@ void lunar_display_update(double lander_x,
                           double vx,
                           double vy,
                           double retro_pct,
-                          int    lz_pct,
+                          double    lz_pct,
                           int    status)
 {
     double lz_hw = lz_pct * WORLD_W / 200.0;

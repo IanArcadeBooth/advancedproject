@@ -24,20 +24,30 @@ int main(void)
 {
    
     lunar_display_init();
+    
+    FILE* file;
 
-    double lander_x = 20.0;
-    double lander_y = 80.0;
-    double vx       =  2.0;
-    double vy       = -0.5;
-    double retro    = 40.0;  
-    int    lz_pct   = 10;     
-    int    status   = LANDER_FLYING;
+    long lLander_x;
+    long lLander_y;
+    long lvx;
+    long lvy;
+    long lRetro;  
+    long lLz;     
+    int status = LANDER_FLYING;
+    
+    while((file = fopen("rocketInfo.txt", "r")) == NULL){}
+    fscanf(file, "%lf, %lf, %lf, %lf, %lf, %lf", lLander_x, lLander_y, lvx, lvy, lRetro, lLz);
+    fclose(file);
+    remove("rocketInfo.txt");
+    
+    double lander_x = (double)lLander_x;
+    double lander_y = (double)lLander_y;
+    double vx = (double)lvx;
+    double vy = (double)lvy;
+    double retro = (double)lRetro;  
+    double lz_pct = (double)lLz;
 
     while (status == LANDER_FLYING) {
-
-        /* 
-         * PHYSICS GOES HERE
-        */
 
         lunar_display_update(lander_x, 
                              lander_y,
