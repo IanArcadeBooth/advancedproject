@@ -71,7 +71,7 @@ int main(void)
             }
 
             lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status);
-            usleep(15000);
+            usleep(30000);
         }
 
         lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status);

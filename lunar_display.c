@@ -318,13 +318,13 @@ void lunar_display_update(double lander_x,
     plptex(2.0, 15.5, 1, 0, 0.0, "Retro");
     snprintf(buf, sizeof(buf), "%.0lf %%", retro_display);
     plptex(22.0, 15.5, 1, 0, 0.0, buf);
-    draw_bar(2.0, 13.0, 44.0, 1.5, retro_pct);
+    draw_bar(2.0, 13.0, 44.0, 1.5, retro_display);
 
     // LZ-Width 
     plptex(2.0, 10.5, 1, 0, 0.0, "LZ-Width");
     snprintf(buf, sizeof(buf), "%.0lf %%", lz_display);
     plptex(22.0, 10.5, 1, 0, 0.0, buf);
-    draw_bar(2.0, 8.0, 44.0, 1.5, (double)lz);
+    draw_bar(2.0, 8.0, 44.0, 1.5, (double)lz_display);
 
     // Vx / Vy
     plptex(52.0, 15.5, 1, 0, 0.0, "Vx");
