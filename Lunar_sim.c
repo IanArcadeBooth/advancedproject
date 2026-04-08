@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "lunar_display.h"
+#include <unistd.h>
 
 
 
@@ -38,11 +39,20 @@ int main(void)
     int status = LANDER_FLYING;
     
     
-    while (status == LANDER_FLYING) 
+    while (1) 
     {
-    printf("looping\n");
-    while((file = fopen("rocketInfo.txt", "r")) == NULL){}
-    fscanf(file, "%lf %lf %lf %lf %lf %lf", &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz);
+    printf("waiting for rocketinfo\n");
+    while((file = fopen("rocketInfo.txt", "r")) == NULL){
+        usleep(10000);
+        }
+    
+    printf("opened rocket info\n");
+    if(fscanf(file, "%lf %lf %lf %lf %lf %lf", &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz) !=6){
+        printf("bad read\n");
+    }
+    else{
+        printf("read ok: y=%lf vy=%lf\n", Lander_y, vy);
+    }
     fclose(file);
     if (    remove("rocketInfo.txt") == 0)
     {
@@ -69,6 +79,7 @@ int main(void)
                              Retro, 
                              Lz,
                              status);
+        usleep(30000);                    
         printf("here2\n");
 
         printf("status: %d\n", status);

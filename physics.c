@@ -38,7 +38,7 @@ int main()
     Buttons inputs;
     inputs.start = 1;    
  
-    while (inputs.start)
+    while (1)
     {
         while ((fp = fopen("inputs.txt", "r")) == NULL){} // Wait until file successfully opened
         fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
@@ -53,7 +53,9 @@ int main()
     while (yPos > 0)
     {
         // Read Inputs
-        while ((fp = fopen("inputs.txt", "r")) == NULL){} // Wait until file successfully opened
+        while ((fp = fopen("inputs.txt", "r")) == NULL){
+            usleep(10000);
+            } // Wait until file successfully opened
         fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone); 
         sideThrust = (inputs.left - inputs.right);
         fclose(fp);
