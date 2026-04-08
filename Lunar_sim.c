@@ -18,6 +18,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#define WORLD_W 100.0
+#define LZ_CENTER 50.0
+
 int main(void) {
   setbuf(stdout, NULL);
 
@@ -31,6 +34,9 @@ int main(void) {
   double vy;
   double Retro;
   double Lz;
+  double lz_hw;
+  double lz_left;
+  double lz_right; 
   int status = LANDER_FLYING;
 
   while (status == LANDER_FLYING) {
@@ -44,7 +50,12 @@ int main(void) {
     fclose(file);
     remove("rocketInfo.txt");
 
-    if (Lander_y <= SURFACE_Y + 3.0 && vy > -10.0) {
+    lz_hw = Lz * WORLD_W / 4.0;
+    lz_left = LZ_CENTER - lz_hw;
+    lz_right = LZ_CENTER + lz_hw;
+
+    if (Lander_y <= SURFACE_Y + 3.0 && vy > -10.0 && Lander_x >= lz_left &&
+        Lander_x <= lz_right) {
       status = LANDER_LANDED;
     } else if (Lander_y <= SURFACE_Y + 3.0) {
       status = LANDER_CRASHED;

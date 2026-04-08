@@ -166,7 +166,7 @@ void draw_lander(double cx, double cy, int crashed)
  */
 void draw_flame(double cx, double cy, double retro)
 {
-    if (retro < 1.0) return;
+    if (retro < 0.01) return;
     double r  = LANDER_R;
     double fl = r * retro / 55.0;
 
@@ -261,7 +261,9 @@ void lunar_display_update(double lander_x,
                           int status)
 {
     
-    double lz_hw = lz * WORLD_W / 200.0;
+    double lz_hw = lz * WORLD_W / 4.0;
+    double retro_display = retro_pct * 100.0;
+    double lz_display = lz * 100.0;
     char   buf[64];
 
     plclear();
@@ -314,13 +316,13 @@ void lunar_display_update(double lander_x,
     // Retro 
     plschr(0, 0.9);
     plptex(2.0, 15.5, 1, 0, 0.0, "Retro");
-    snprintf(buf, sizeof(buf), "%.0lf %%", retro_pct);
+    snprintf(buf, sizeof(buf), "%.0lf %%", retro_display);
     plptex(22.0, 15.5, 1, 0, 0.0, buf);
     draw_bar(2.0, 13.0, 44.0, 1.5, retro_pct);
 
     // LZ-Width 
     plptex(2.0, 10.5, 1, 0, 0.0, "LZ-Width");
-    snprintf(buf, sizeof(buf), "%.0lf %%", lz);
+    snprintf(buf, sizeof(buf), "%.0lf %%", lz_display);
     plptex(22.0, 10.5, 1, 0, 0.0, buf);
     draw_bar(2.0, 8.0, 44.0, 1.5, (double)lz);
 

@@ -31,6 +31,7 @@ int main()
     int sideThrust = 0; // -1 if right thrusters on, or +1 if left thrusters on
     double deltaTime = 0; // Time between frames
     double simTime = 0; // Keeps track of how long sim has been running (just for debugging atm)
+    double fixedLandZone = 0;
     
     // Setup structures for time tracking            
     struct timespec T1, T2;
@@ -45,6 +46,7 @@ int main()
         fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
         fclose(fp);
         remove("inputs.txt");
+        fixedLandZone = inputs.landZone;
         writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
     }    
    
@@ -56,7 +58,8 @@ int main()
         while ((fp = fopen("inputs.txt", "r")) == NULL){
             usleep(10000);
             } // Wait until file successfully opened
-        fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone); 
+        fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+        inputs.landZone = fixedLandZone; 
         sideThrust = (inputs.left - inputs.right);
         fclose(fp);
         remove("inputs.txt");
