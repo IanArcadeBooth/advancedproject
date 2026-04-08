@@ -62,11 +62,11 @@ int main(void)
         printf("error\n");
     }
     
-    if(Lander_y <= 5.0 && vy < 10.0)
+    if(Lander_y <= 5.0 && vy > -10.0)
     {
         status = LANDER_LANDED;
     }
-    else if(Lander_y <= 5 && vy >= 10)
+    else if(Lander_y <= 5 && vy <= -10)
     {
         status = LANDER_CRASHED;
     }

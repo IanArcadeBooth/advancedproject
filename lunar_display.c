@@ -221,6 +221,8 @@ void lunar_display_init(void)
     plsetopt("bg", "000000");  // black background          
     plinit();
     plscol0(C_WHITE, 255, 255, 255);
+    
+    pladv(0);
 }
  /*
 void lunar_display_update(double lander_x,
@@ -262,7 +264,7 @@ void lunar_display_update(double lander_x,
     double lz_hw = lz * WORLD_W / 200.0;
     char   buf[64];
 
-    //plbop();
+    plclear();
 
     //Space viewport (top) 
     plvpor(0.02, 0.98, 0.30, 0.98);
