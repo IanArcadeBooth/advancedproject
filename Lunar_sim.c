@@ -41,7 +41,6 @@ int main(void)
     
     while (1) 
     {
-    printf("waiting for rocketinfo\n");
     while((file = fopen("rocketInfo.txt", "r")) == NULL){}
     fscanf(file, "%lf %lf %lf %lf %lf %lf", &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz);
     fclose(file);
@@ -56,7 +55,6 @@ int main(void)
         status = LANDER_CRASHED;
     }
 
-    printf("here\n");
         lunar_display_update(Lander_x, 
                              Lander_y,
                              vx, 
@@ -64,10 +62,7 @@ int main(void)
                              Retro, 
                              Lz,
                              status);
-        usleep(30000);                    
-        printf("here2\n");
-
-        printf("status: %d\n", status);
+        usleep(15000);                    
     }
 
     lunar_display_update(Lander_x, 

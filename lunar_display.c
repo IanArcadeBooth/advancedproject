@@ -320,7 +320,7 @@ void lunar_display_update(double lander_x,
 
     // LZ-Width 
     plptex(2.0, 10.5, 1, 0, 0.0, "LZ-Width");
-    snprintf(buf, sizeof(buf), "%lf %%", lz);
+    snprintf(buf, sizeof(buf), "%.0lf %%", lz);
     plptex(22.0, 10.5, 1, 0, 0.0, buf);
     draw_bar(2.0, 8.0, 44.0, 1.5, (double)lz);
 
@@ -341,8 +341,6 @@ void lunar_display_update(double lander_x,
     }
 
     plschr(0, 1.0);
-    //pleop();
-    //plflush();
 
 }
 /*

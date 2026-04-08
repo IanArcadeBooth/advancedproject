@@ -1,6 +1,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "lunar_display.h"
 
 const double gravity = 1.6;
 const double maxThrust = 2.98; 
@@ -46,11 +47,10 @@ int main()
         remove("inputs.txt");
         writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
     }    
-    printf("made it!\n");
    
     clock_gettime(CLOCK_MONOTONIC, &T1);
     // Main physics loop, runs until land/crash
-    while (yPos > 0)
+    while (yPos > SURFACE_Y)
     {
         // Read Inputs
         while ((fp = fopen("inputs.txt", "r")) == NULL){
@@ -72,6 +72,18 @@ int main()
         yVel = yVel - (gravity * deltaTime) + (maxThrust * inputs.thrust * deltaTime);
         xVel += sideThrust * deltaTime;
         
+        if (yPos <= SURFACE_Y)
+        {
+            yPos = SURFACE_Y;
+            
+            while (access("rocketInfo.txt", F_OK) == 0)
+            {
+                usleep(10000);
+            }
+            writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
+            break;
+        }
+        
         writeInfo(fp, &inputs, xPos, yPos, xVel, yVel); 
     }
 }
@@ -86,7 +98,6 @@ void writeInfo(FILE* fp, Buttons* inputs, double xPos, double yPos, double xVel,
     fp = fopen("rocketInfo.txt", "w");
     fprintf(fp, "%lf %lf %lf %lf %lf %lf", xPos, yPos, xVel, yVel, inputs->thrust, inputs->landZone);
     fclose(fp);
-    printf("new data\n");
 }
 
 //Returns the difference between two times in seconds
