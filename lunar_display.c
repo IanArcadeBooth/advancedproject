@@ -18,7 +18,6 @@
 //world constants
 #define WORLD_W    100.0
 #define WORLD_H    100.0
-#define SURFACE_Y    5.0
 #define LZ_CENTER   50.0
 #define LANDER_R     3.0
 
@@ -240,10 +239,11 @@ void lunar_display_update(double lander_x,
                           double vx,
                           double vy,
                           double retro_pct,
-                          double    lz_pct,
-                          int    status)
+                          double lz,
+                          int status)
 {
-    double lz_hw = lz_pct * WORLD_W / 200.0;
+    
+    double lz_hw = lz * WORLD_W / 200.0;
     char   buf[64];
 
     plbop();
@@ -296,23 +296,23 @@ void lunar_display_update(double lander_x,
     // Retro 
     plschr(0, 0.9);
     plptex(2.0, 15.5, 1, 0, 0.0, "Retro");
-    snprintf(buf, sizeof(buf), "%.0f %%", retro_pct);
+    snprintf(buf, sizeof(buf), "%.0lf %%", retro_pct);
     plptex(22.0, 15.5, 1, 0, 0.0, buf);
     draw_bar(2.0, 13.0, 44.0, 1.5, retro_pct);
 
     // LZ-Width 
     plptex(2.0, 10.5, 1, 0, 0.0, "LZ-Width");
-    snprintf(buf, sizeof(buf), "%d %%", lz_pct);
+    snprintf(buf, sizeof(buf), "%lf %%", lz);
     plptex(22.0, 10.5, 1, 0, 0.0, buf);
-    draw_bar(2.0, 8.0, 44.0, 1.5, (double)lz_pct);
+    draw_bar(2.0, 8.0, 44.0, 1.5, (double)lz);
 
     // Vx / Vy
     plptex(52.0, 15.5, 1, 0, 0.0, "Vx");
-    snprintf(buf, sizeof(buf), "%+.2f  m/sec", vx);
+    snprintf(buf, sizeof(buf), "%+.2lf  m/sec", vx);
     plptex(60.0, 15.5, 1, 0, 0.0, buf);
 
     plptex(52.0, 10.5, 1, 0, 0.0, "Vy");
-    snprintf(buf, sizeof(buf), "%+.2f  m/sec", vy);
+    snprintf(buf, sizeof(buf), "%+.2lf  m/sec", vy);
     plptex(60.0, 10.5, 1, 0, 0.0, buf);
 
     // status

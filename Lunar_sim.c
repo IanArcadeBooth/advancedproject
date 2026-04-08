@@ -12,7 +12,7 @@
 
 
 
-//Build:  gcc -O2 -Wall sim.c lunar_display.c $(pkg-config --cflags --libs plplot) -lm -o lunar_lander
+//Build:  gcc -O2 -Wall Lunar_sim.c lunar_display.c $(pkg-config --cflags --libs plplot) -lm -o lunar_lander
 
 
 #include <stdio.h>
@@ -27,43 +27,45 @@ int main(void)
     
     FILE* file;
 
-    long lLander_x;
-    long lLander_y;
-    long lvx;
-    long lvy;
-    long lRetro;  
-    long lLz;     
+    double Lander_x;
+    double Lander_y;
+    double vx;
+    double vy;
+    double Retro;  
+    double Lz;     
     int status = LANDER_FLYING;
     
     while((file = fopen("rocketInfo.txt", "r")) == NULL){}
-    fscanf(file, "%lf, %lf, %lf, %lf, %lf, %lf", lLander_x, lLander_y, lvx, lvy, lRetro, lLz);
+    fscanf(file, "%lf, %lf, %lf, %lf, %lf, %lf", &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz);
     fclose(file);
     remove("rocketInfo.txt");
     
-    double lander_x = (double)lLander_x;
-    double lander_y = (double)lLander_y;
-    double vx = (double)lvx;
-    double vy = (double)lvy;
-    double retro = (double)lRetro;  
-    double lz_pct = (double)lLz;
+    if(Lander_y <= 5 && vy < 10)
+    {
+        status = LANDER_LANDED;
+    }
+    else if(Lander_y <= 5 && vy >= 10)
+    {
+        status = LANDER_FLYING;
+    }
 
-    while (status == LANDER_FLYING) {
-
-        lunar_display_update(lander_x, 
-                             lander_y,
+    while (status == LANDER_FLYING) 
+    {
+        lunar_display_update(Lander_x, 
+                             Lander_y,
                              vx, 
                              vy,
-                             retro, 
-                             lz_pct,
+                             Retro, 
+                             Lz,
                              status);
     }
 
-    lunar_display_update(lander_x, 
-                         lander_y,
+    lunar_display_update(Lander_x, 
+                         Lander_y,
                          vx, 
                          vy,
-                         retro, 
-                         lz_pct,
+                         Retro, 
+                         Lz,
                          status);
 
     lunar_display_close();

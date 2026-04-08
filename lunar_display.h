@@ -10,7 +10,8 @@
 
 #define LANDER_FLYING   0   // simulation still running 
 #define LANDER_LANDED   1   // successful landing       
-#define LANDER_CRASHED -1   // crash                      
+#define LANDER_CRASHED -1   // crash      
+#define SURFACE_Y    5.0    //Ground level                
 
 /*
  * lunar_display_init
@@ -22,13 +23,13 @@ void lunar_display_init(void);
  * lunar_display_update
  * Render one frame
  */
-void lunar_display_update(double lander_x,
-                          double lander_y,
-                          double vx,
-                          double vy,
-                          double retro_pct,
-                          int    lz_pct,
-                          int    status);
+void lunar_display_update(double,
+                          double,
+                          double,
+                          double,
+                          double,
+                          double,
+                          int);
 
 /*
  * lunar_display_close
