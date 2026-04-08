@@ -42,25 +42,10 @@ int main(void)
     while (1) 
     {
     printf("waiting for rocketinfo\n");
-    while((file = fopen("rocketInfo.txt", "r")) == NULL){
-        usleep(10000);
-        }
-    
-    printf("opened rocket info\n");
-    if(fscanf(file, "%lf %lf %lf %lf %lf %lf", &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz) !=6){
-        printf("bad read\n");
-    }
-    else{
-        printf("read ok: y=%lf vy=%lf\n", Lander_y, vy);
-    }
+    while((file = fopen("rocketInfo.txt", "r")) == NULL){}
+    fscanf(file, "%lf %lf %lf %lf %lf %lf", &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz);
     fclose(file);
-    if (    remove("rocketInfo.txt") == 0)
-    {
-        printf("file deleted\n");
-    }
-    else {
-        printf("error\n");
-    }
+    remove("rocketInfo.txt");
     
     if(Lander_y <= 5.0 && vy > -10.0)
     {
