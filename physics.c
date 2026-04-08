@@ -22,72 +22,120 @@ double deltaT(struct timespec*, struct timespec*);
 
 int main()
 {
-
-    // Setup initial conditions of variables
-    double xVel = 1.6;
-    double yVel = 0;
-    double xPos = 0;
-    double yPos = 100;
-    int sideThrust = 0; // -1 if right thrusters on, or +1 if left thrusters on
-    double deltaTime = 0; // Time between frames
-    double simTime = 0; // Keeps track of how long sim has been running (just for debugging atm)
-    double fixedLandZone = 0;
-    
     // Setup structures for time tracking            
     struct timespec T1, T2;
     
     FILE* fp;
     Buttons inputs;
-    inputs.start = 1;    
- 
-    while (inputs.start)
-    {
-        while ((fp = fopen("inputs.txt", "r")) == NULL){} // Wait until file successfully opened
-        fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
-        fclose(fp);
-        remove("inputs.txt");
-        fixedLandZone = inputs.landZone;
-        writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
-    }    
-   
-    clock_gettime(CLOCK_MONOTONIC, &T1);
-    // Main physics loop, runs until land/crash
-    while (yPos > SURFACE_Y + 3.0)
-    {
-        // Read Inputs
-        while ((fp = fopen("inputs.txt", "r")) == NULL){
-            usleep(10000);
-            } // Wait until file successfully opened
-        fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
-        inputs.landZone = fixedLandZone; 
-        sideThrust = (inputs.left - inputs.right);
-        fclose(fp);
-        remove("inputs.txt");
 
-        clock_gettime(CLOCK_MONOTONIC, &T2); // Get current time
-        deltaTime = deltaT(&T1, &T2); // Calculate time since last here
-        clock_gettime(CLOCK_MONOTONIC, &T1); // Save time last here
-        simTime += deltaTime;
-
-        // Update position and velocity
-        xPos = xPos + (xVel * deltaTime);
-        yPos = yPos + (yVel * deltaTime);
-        yVel = yVel - (gravity * deltaTime) + (maxThrust * inputs.thrust * deltaTime);
-        xVel += sideThrust * deltaTime;
+    while (1)
+    {
+        // Setup initial conditions of variables
+        double xVel = 1.6;
+        double yVel = 0;
+        double xPos = 0;
+        double yPos = 100;
+        int sideThrustState = 0; // -1 if right thrusters on, or +1 if left thrusters on
+        double deltaTime = 0; // Time between frames
+        double simTime = 0; // Keeps track of how long sim has been running (just for debugging atm)
+        double fixedLandZone = 0;
         
-        if (yPos <= SURFACE_Y + 3.0)
+        inputs.start = 1;    
+     
+        while (inputs.start)
         {
-            yPos = SURFACE_Y + 3.0;
+            while ((fp = fopen("inputs.txt", "r")) == NULL)
+            {
+                usleep(10000);
+            } // Wait until file successfully opened
+
+            fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+            fclose(fp);
+            remove("inputs.txt");
+
+            fixedLandZone = inputs.landZone;
+            writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
+        }    
+       
+        clock_gettime(CLOCK_MONOTONIC, &T1);
+
+        // Main physics loop, runs until land/crash
+        while (yPos > SURFACE_Y + 3.0)
+        {
+            // Read Inputs
+            while ((fp = fopen("inputs.txt", "r")) == NULL)
+            {
+                usleep(10000);
+            } // Wait until file successfully opened
+
+            fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+            fclose(fp);
+            remove("inputs.txt");
+
+            inputs.landZone = fixedLandZone; 
+            sideThrustState = (inputs.left - inputs.right);
+
+            clock_gettime(CLOCK_MONOTONIC, &T2); // Get current time
+            deltaTime = deltaT(&T1, &T2); // Calculate time since last here
+            clock_gettime(CLOCK_MONOTONIC, &T1); // Save time last here
+            simTime += deltaTime;
+
+            // Update position and velocity
+            xPos = xPos + (xVel * deltaTime);
+            yPos = yPos + (yVel * deltaTime);
+            yVel = yVel - (gravity * deltaTime) + (maxThrust * inputs.thrust * deltaTime);
+            xVel += sideThrustState * deltaTime;
             
-            while (access("rocketInfo.txt", F_OK) == 0)
+            if (yPos <= SURFACE_Y + 3.0)
+            {
+                yPos = SURFACE_Y + 3.0;
+                
+                while (access("rocketInfo.txt", F_OK) == 0)
+                {
+                    usleep(10000);
+                }
+                writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
+                break;
+            }
+            
+            writeInfo(fp, &inputs, xPos, yPos, xVel, yVel); 
+        }
+
+                while (inputs.start == 0)
+        {
+            while ((fp = fopen("inputs.txt", "r")) == NULL)
             {
                 usleep(10000);
             }
-            writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
-            break;
+
+            fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+            fclose(fp);
+            remove("inputs.txt");
         }
-        
-        writeInfo(fp, &inputs, xPos, yPos, xVel, yVel); 
+
+        while (inputs.start == 1)
+        {
+            while ((fp = fopen("inputs.txt", "r")) == NULL)
+            {
+                usleep(10000);
+            }
+
+            fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+            fclose(fp);
+            remove("inputs.txt");
+        }
+
+        while (inputs.start == 0)
+        {
+            while ((fp = fopen("inputs.txt", "r")) == NULL)
+            {
+                usleep(10000);
+            }
+
+            fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+            fclose(fp);
+            remove("inputs.txt");
+        }
     }
 }
 
