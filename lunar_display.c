@@ -216,8 +216,8 @@ void draw_bar(double px, double py, double w, double h, double pct)
 void lunar_display_init(void)
 {
    
-    plsdev("xwin"); //or "xcairo"
-    //plsetopt("db", "");        // double-buffer: no flicker 
+    plsdev("xcairo"); //"xwin" or "xcairo"
+    plsetopt("db", "");        // double-buffer: no flicker 
     plsetopt("bg", "000000ff");  // black background          
     plinit();
     plscol0(C_WHITE, 255, 255, 255);

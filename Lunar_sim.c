@@ -20,8 +20,10 @@
 #include "lunar_display.h"
 
 
+
 int main(void)
 {
+    setbuf(stdout,NULL);
    
     lunar_display_init();
     
