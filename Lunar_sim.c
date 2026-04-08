@@ -35,22 +35,31 @@ int main(void)
     double Lz;     
     int status = LANDER_FLYING;
     
-    while((file = fopen("rocketInfo.txt", "r")) == NULL){}
-    fscanf(file, "%lf, %lf, %lf, %lf, %lf, %lf", &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz);
-    fclose(file);
-    remove("rocketInfo.txt");
     
-    if(Lander_y <= 5 && vy < 10)
+    while (status == LANDER_FLYING) 
+    {
+    printf("looping\n");
+    while((file = fopen("rocketInfo.txt", "r")) == NULL){}
+    fscanf(file, "%lf %lf %lf %lf %lf %lf", &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz);
+    fclose(file);
+    if (    remove("rocketInfo.txt") == 0)
+    {
+        printf("file deleted\n");
+    }
+    else {
+        printf("error\n");
+    }
+    
+    if(Lander_y <= 5.0 && vy < 10.0)
     {
         status = LANDER_LANDED;
     }
     else if(Lander_y <= 5 && vy >= 10)
     {
-        status = LANDER_FLYING;
+        status = LANDER_CRASHED;
     }
 
-    while (status == LANDER_FLYING) 
-    {
+    printf("here\n");
         lunar_display_update(Lander_x, 
                              Lander_y,
                              vx, 
@@ -58,6 +67,9 @@ int main(void)
                              Retro, 
                              Lz,
                              status);
+        printf("here2\n");
+
+        printf("status: %d\n", status);
     }
 
     lunar_display_update(Lander_x, 

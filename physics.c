@@ -46,6 +46,7 @@ int main()
         remove("inputs.txt");
         writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
     }    
+    printf("made it!\n");
    
     clock_gettime(CLOCK_MONOTONIC, &T1);
     // Main physics loop, runs until land/crash
@@ -77,10 +78,13 @@ void writeInfo(FILE* fp, Buttons* inputs, double xPos, double yPos, double xVel,
 {
     if (access("rocketInfo.txt", F_OK) == 0)
     {
+        
         return; // Previous info has not yet been read
     }
     fp = fopen("rocketInfo.txt", "w");
     fprintf(fp, "%lf %lf %lf %lf %lf %lf", xPos, yPos, xVel, yVel, inputs->thrust, inputs->landZone);
+    fclose(fp);
+    printf("new data\n");
 }
 
 //Returns the difference between two times in seconds
