@@ -170,6 +170,7 @@ void tryWriteLatestInput(const InputSet *latestInput, int *hasPendingInput)
             latestInput->p2);
 
     fclose(file);
+    
 
     *hasPendingInput = 0; // mark as written
 }

@@ -216,14 +216,28 @@ void draw_bar(double px, double py, double w, double h, double pct)
 void lunar_display_init(void)
 {
    
-    plsdev("xcairo"); //"xwin" or "xcairo"
-    plsetopt("db", "");        // double-buffer: no flicker 
-    plsetopt("bg", "000000ff");  // black background          
+    plsdev("xwin"); //"xwin" or "xcairo"
+    //plsetopt("db", "");        // double-buffer: no flicker 
+    plsetopt("bg", "000000");  // black background          
     plinit();
     plscol0(C_WHITE, 255, 255, 255);
 }
+ /*
+void lunar_display_update(double lander_x,
+                          double lander_y,
+                          double vx,
+                          double vy,
+                          double retro_pct,
+                          double lz,
+                          int status)
+                          {
+                              printf("inside update\n");
+                              plclear();
+                              printf("after pladv\n");
+                          }
 
-/*
+
+
  * lunar_display_update: Redraws the display each frame
  * double lander_x: lander x position
  * double Lander_y: lander y position
@@ -234,6 +248,8 @@ void lunar_display_init(void)
  * int status: status of lander(flying, landed, crashed)
  * Return: N/A
  */
+
+
 void lunar_display_update(double lander_x,
                           double lander_y,
                           double vx,
@@ -246,7 +262,7 @@ void lunar_display_update(double lander_x,
     double lz_hw = lz * WORLD_W / 200.0;
     char   buf[64];
 
-    plbop();
+    //plbop();
 
     //Space viewport (top) 
     plvpor(0.02, 0.98, 0.30, 0.98);
@@ -323,8 +339,9 @@ void lunar_display_update(double lander_x,
     }
 
     plschr(0, 1.0);
-    pleop();
-    plflush();
+    //pleop();
+    //plflush();
+
 }
 /*
  * lunar_display_close: Shut down plplot 
