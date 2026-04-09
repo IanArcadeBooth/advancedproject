@@ -19,7 +19,7 @@
 #define WORLD_W    100.0
 #define WORLD_H    100.0
 #define LZ_CENTER   50.0
-#define LANDER_R     3.0
+
 
 //colour slots
 #define C_BLACK  0
@@ -168,7 +168,7 @@ void draw_flame(double cx, double cy, double retro)
 {
     if (retro < 0.01) return;
     double r  = LANDER_R;
-    double fl = r * retro / 55.0;
+    double fl = r * retro / 0.55;
 
     plcol0(C_WHITE);
     pllsty(LS_SOLID);
@@ -269,7 +269,7 @@ void lunar_display_update(double lander_x,
     plclear();
 
     //Space viewport (top) 
-    plvpor(0.02, 0.98, 0.30, 0.98);
+    plvpor(0.02, 0.98, 0.30, 0.93);
     plwind(0.0, WORLD_W, 0.0, WORLD_H);
 
     plcol0(C_WHITE);

@@ -11,7 +11,8 @@
 #define LANDER_FLYING   0   // simulation still running 
 #define LANDER_LANDED   1   // successful landing       
 #define LANDER_CRASHED -1   // crash      
-#define SURFACE_Y    5.0    //Ground level                
+#define SURFACE_Y    5.0    //Ground level 
+#define LANDER_R     1.65    //Lander radius               
 
 /*
  * lunar_display_init

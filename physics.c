@@ -60,7 +60,7 @@ int main()
         clock_gettime(CLOCK_MONOTONIC, &T1);
 
         // Main physics loop, runs until land/crash
-        while (yPos > SURFACE_Y + 3.0)
+        while (yPos > SURFACE_Y + LANDER_R)
         {
             // Read Inputs
             while ((fp = fopen("inputs.txt", "r")) == NULL)
@@ -86,9 +86,9 @@ int main()
             yVel = yVel - (gravity * deltaTime) + (maxThrust * inputs.thrust * deltaTime);
             xVel += sideThrustState * deltaTime;
             
-            if (yPos <= SURFACE_Y + 3.0)
+            if (yPos <= SURFACE_Y + LANDER_R)
             {
-                yPos = SURFACE_Y + 3.0;
+                yPos = SURFACE_Y + LANDER_R;
                 
                 while (access("rocketInfo.txt", F_OK) == 0)
                 {

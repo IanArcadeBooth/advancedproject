@@ -58,24 +58,24 @@ int main(void)
             lz_left = LZ_CENTER - lz_hw;
             lz_right = LZ_CENTER + lz_hw;
 
-            if (Lander_y <= SURFACE_Y + 3.0 &&
+            if (Lander_y <= SURFACE_Y + LANDER_R &&
                 vy > -10.0 &&
                 Lander_x >= lz_left &&
                 Lander_x <= lz_right)
             {
                 status = LANDER_LANDED;
             }
-            else if (Lander_y <= SURFACE_Y + 3.0)
+            else if (Lander_y <= SURFACE_Y + LANDER_R)
             {
                 status = LANDER_CRASHED;
             }
 
             lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status);
-            usleep(30000);
+            //usleep(30000);
         }
 
         lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status);
-        usleep(100000);
+        usleep(10000);
     }
 
     lunar_display_close();
