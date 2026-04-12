@@ -20,6 +20,15 @@ typedef struct BUTTONS
 void writeInfo(FILE*, Buttons*, double, double, double, double);
 double deltaT(struct timespec*, struct timespec*);
 
+/*
+    File: physics.c
+    Author: Allison Marmura
+    Date: 2026/04/12
+    Description: This file reads inputs from a serial communication process
+    and uses them to calculate the position and velocity of a user-controlled
+    lunar lander. Data about the status of the ship is then written to a file
+    for another process to read and use for a graphical display.
+*/
 int main()
 {
     // Setup structures for time tracking            
@@ -101,7 +110,7 @@ int main()
             writeInfo(fp, &inputs, xPos, yPos, xVel, yVel); 
         }
 
-                while (inputs.start == 0)
+        while (inputs.start == 0)
         {
             while ((fp = fopen("inputs.txt", "r")) == NULL)
             {
@@ -139,6 +148,15 @@ int main()
     }
 }
 
+/*
+    Description: Writes info to a file for the graphics program to read
+    @param fp: file pointer to use for writing
+    @param inputs: struct containing current state of user input
+    @param xPos: x position of lander
+    @param yPos: y position of lander
+    @param xVel: x velocity of lander
+    @param yVel: y velocity of lander
+*/
 void writeInfo(FILE* fp, Buttons* inputs, double xPos, double yPos, double xVel, double yVel)
 {
     if (access("rocketInfo.txt", F_OK) == 0)
@@ -151,7 +169,12 @@ void writeInfo(FILE* fp, Buttons* inputs, double xPos, double yPos, double xVel,
     fclose(fp);
 }
 
-//Returns the difference between two times in seconds
+/*
+    Description: calculates difference between two time structures
+    @param t1: timespec of earlier time
+    @param t2: timespec of later time
+    @return: the difference between the two times in seconds
+*/
 double deltaT(struct timespec* t1, struct timespec* t2)
 {
     return  (t2->tv_sec - t1->tv_sec) + (t2->tv_nsec - t1->tv_nsec) * nsMultiplier;
