@@ -1,7 +1,7 @@
 /*
  * File:lunar_display.c
  * Author: Lucas Farmer
- * Date: 
+ * Date: April 13, 2026
  * Description: Creates the lunar lander display
  *              using plplot. The program creates
  *              stars, the lander, lander flame, 
@@ -15,21 +15,64 @@
 #include <math.h>
 #include <plplot/plplot.h>
 
-//world constants
+// World constants
 #define WORLD_W    100.0
 #define WORLD_H    100.0
+#define HALF_WORLD_W 50.0
+#define X_MIN 0.0
+#define Y_MIN 0.0
 #define LZ_CENTER   50.0
 
-
-//colour slots
+// Colour slots
 #define C_BLACK  0
 #define C_WHITE  1
 #define C_GREY 7
-#define C_BLUEVIOLET  10
+#define C_BLUEVIOLET 10
 
-//line styles
+// Line styles
 #define LS_SOLID  1
 #define LS_DASHED 2
+
+// Text specifiers - keep slant values a 1 and 0 for no slanted text
+#define JUST_CENTER 0.5
+#define JUST_LEFT 0.0
+#define SLANT_DX 1
+#define SLANT_DY 0
+// Keeps the Overlay Messages text aligned
+#define OM_X 50.0
+#define OM_TOP_Y 55.0
+#define OM_BOTTOM_Y 48.0
+
+// Bar height and width
+#define BAR_WIDTH 1.5
+#define BAR_HEIGHT 44.0
+// Keeps the % bar for the retro and lz-width aligned with the text
+#define BAR_X 2.0
+#define RETRO_BAR_Y 13.0
+#define LZ_BAR_Y 8.0
+// Keeps the % values on the screen aligned with each other
+#define VAL_PCT 22.0 
+// Keeps Retro text aligned
+#define RETRO_TEXT_Y 15.5
+// Keeps Lz-width text aligned
+#define LZ_TEXT_Y 10.5
+
+// Keep the VX and VY text and the value on the same line
+#define VX_VY_X 52.0
+#define VX_VY_VAL_X 60.0
+#define VX_Y 15.5
+#define VY_Y 10.5
+
+// Character Height scalers - keep default height at zero
+#define CHR_HEIGHT_DEFAULT 0
+// Overlay Message
+#define OM_TOP 1.6
+#define OM_BOTTOM 1.0
+// Instrument Panel
+#define IP_TEXT_SIZE 0.9
+
+
+
 
 /*
  * Line2: Draws a straight line between two points
@@ -41,9 +84,11 @@
  */
 void line2(double x1, double y1, double x2, double y2)
 {
-    double x[2] = { x1, x2 };
-    double y[2] = { y1, y2 };
-    plline(2, x, y);
+    static int linePoints = 2;
+    
+    double x[] = { x1, x2 };
+    double y[] = { y1, y2 };
+    plline(lineSize, x, y); //Draws a single line from given coordinates
 }
 
 /*
@@ -52,24 +97,22 @@ void line2(double x1, double y1, double x2, double y2)
  */
 void draw_stars()
 {
-    //x positions of stars
-    static double sx[] = {
+    //x positions of stars - arbitrary vales
+    static double starX[] = {
          4, 11, 19, 28, 37, 46, 53, 63, 72, 81, 89, 96,
          7, 16, 24, 33, 42, 51, 60, 69, 78, 87, 94,
-        10, 21, 31, 41, 55, 65, 75, 85
-    };
+         10, 21, 31, 41, 55, 65, 75, 85};
     
-    //y position of stars
-    static double sy[] = {
+    //y position of stars - arbitrary vales - Recommended to keep above 60 
+    static double starY[] = {
         91, 86, 94, 89, 96, 83, 90, 88, 93, 85, 92, 87,
         76, 79, 73, 81, 77, 74, 80, 72, 78, 75, 70,
-        64, 61, 67, 58, 63, 69, 57, 65
-    };
+        64, 61, 67, 58, 63, 69, 57, 65};
     
-    int n = (int)(sizeof(sx) / sizeof(sx[0])); //Number of stars
+    int nStar = (int)(sizeof(starX) / sizeof(starX[0])); //Number of stars
     plcol0(C_WHITE);
-    plssym(0.0, 0.35);    //Set the size
-    plpoin(n, sx, sy, 1); // Draw the star(dot) at each point
+    plssym(0.0, 0.35);              //Set the symbol size (height of symbol in mm (0.0 is default), Scaler for actual height (arbitrary))
+    plpoin(nStar, starX, starY, 1); // Draw the star(dot) at each point
 }
 
 /*
@@ -82,16 +125,19 @@ void draw_surface(double lz_hw)
     // Finds the left and right edges of the landing zone 
     double lzL = LZ_CENTER - lz_hw;
     double lzR = LZ_CENTER + lz_hw;
+    static int flagPoints = 4;
 
     /* Rough terrain (gap at landing zone) 
      * Landing zone sits flat with the ground
      * to make it easier to detect the landing
+     * Unnamed value are arbitrary
      */
-    double tx[] = {0, 6, 12, 18, 24, lzL, lzL, lzR, lzR, 74, 80, 86, 93, 100 };
-    double ty[] = {5, 5, 8, 6, 9, 9, SURFACE_Y, SURFACE_Y, 9, 8, 5, 7, 5, 5 };
+    double terrainX[] = {X_MIN, 6, 12, 18, 24, lzL, lzL, lzR, lzR, 74, 80, 86, 93, WORLD_W};
+    double terrainY[] = {SURFACE_Y, 5, 8, 6, 9, 9, SURFACE_Y, SURFACE_Y, 9, 8, 5, 7, 5, SURFACE_Y}; // Keep terrainY value under double SURFACE_Y
+    int terrainPoints = (int)(sizeof(terrainX) / sizeof(terrainX[0]));
     plcol0(C_GREY);
     pllsty(LS_SOLID);
-    plline(14, tx, ty);
+    plline(terrainPoints, terrainX, terrainY);
 
     /* Landing-zone platform 
      * Flat landing zone to make
@@ -99,87 +145,111 @@ void draw_surface(double lz_hw)
      */
     line2(lzL, SURFACE_Y, lzR, SURFACE_Y);
 
-    // flag poles 
+    // Flag poles (Scaler value are arbitrary)
     line2(lzL, SURFACE_Y, lzL, SURFACE_Y + 4.0); //Left
     line2(lzR, SURFACE_Y, lzR, SURFACE_Y + 4.0); //Right
 
-    // flag triangles 
-    double fl1x[4] = { lzL, lzL, lzL + 1.5, lzL };
-    double fl1y[4] = { SURFACE_Y+4, SURFACE_Y+2, SURFACE_Y+3, SURFACE_Y+4 };
-    double fl2x[4] = { lzR, lzR, lzR - 1.5, lzR };
-    double fl2y[4] = { SURFACE_Y+4, SURFACE_Y+2, SURFACE_Y+3, SURFACE_Y+4 };
+    // Flag triangles (Scaler value are arbitrary)
+    // Left triangle
+    double flagLeftX[] = { lzL, lzL, lzL + 1.5, lzL }; 
+    double flagLeftY[] = { SURFACE_Y+4, SURFACE_Y+2, SURFACE_Y+3, SURFACE_Y+4 };
+    // Right triangle
+    double flagRightX[] = { lzR, lzR, lzR - 1.5, lzR }; 
+    double flagRightY[] = { SURFACE_Y+4, SURFACE_Y+2, SURFACE_Y+3, SURFACE_Y+4 };
+    
     // Daws a solid filled polygon
-    plfill(4, fl1x, fl1y);
-    plfill(4, fl2x, fl2y);
+    plfill(flagPoints, flagLeftX, flagLeftY);
+    plfill(flagPoints, flagRightX, flagRightY);
 }
 
 /*
- * draw_lander: Draws the lunar lander
+ * draw_lander: Draws the lunar lander. Uses an array
+ *              to set points where the lines will change
+ *              directions to draw the parts of the lander.
+ *              The points for each line are determined
+ *              by scaling the set radius that the lander 
+ *              will be drawn in and adding or subtracting
+ *              it from the center position of the lander,
+ *              depending on which quadrent it should be in.
  * double cx: Center x position of the lander
  * double cy: Center y position of the lander
- * int crashed: Checks if the lander crashed and either 
+ * int crashed: Checks if the lander crashed and either draws 
+ *              the lander with dashed lines if it crashes and
+ *              solid lines if lands of if its flying
  * Return:N/A
  */
 void draw_lander(double cx, double cy, int crashed)
 {
+    /*    ALL SCALER VALUES ARE ARBITRARY - CHANGE AT YOUR OWN RISK    */
+    
     double r = LANDER_R;
+    static int stageBodyPoints = 5, antDishPoints = 3, engBellPoints = 4; // Shape line points - DO NOT CHANGE
+    
     plcol0(C_BLUEVIOLET);
-    pllsty(crashed ? LS_DASHED : LS_SOLID);
+    pllsty(crashed ? LS_DASHED : LS_SOLID); // Line style for the lander based on if its crashed or not
 
-    // descent stage body 
-    double bx[5] = { cx-r*0.9, cx+r*0.9, cx+r*0.6, cx-r*0.6, cx-r*0.9 };
-    double by[5] = { cy-r*0.2, cy-r*0.2, cy+r*0.5, cy+r*0.5, cy-r*0.2 };
-    plline(5, bx, by);
+    // Descent stage body (Middle piece)
+    double dStageBodyX[] = {cx-r*0.9, cx+r*0.9, cx+r*0.6, cx-r*0.6, cx-r*0.9};
+    double dStageBodyY[] = {cy-r*0.2, cy-r*0.2, cy+r*0.5, cy+r*0.5, cy-r*0.2};
+    plline(stageBodySize, dStageBodyX, dStageBodyY);
 
-    // ascent stage body 
-    double ax[5] = { cx-r*0.4, cx+r*0.4, cx+r*0.4, cx-r*0.4, cx-r*0.4 };
-    double ay[5] = { cy+r*0.5, cy+r*0.5, cy+r*1.1, cy+r*1.1, cy+r*0.5 };
-    plline(5, ax, ay);
+    // Ascent stage body (Top piece)
+    double aStageBodyX[] = {cx-r*0.4, cx+r*0.4, cx+r*0.4, cx-r*0.4, cx-r*0.4};
+    double aStageBodyY[] = {cy+r*0.5, cy+r*0.5, cy+r*1.1, cy+r*1.1, cy+r*0.5};
+    plline(stageBodySize, aStageBodyX, aStageBodyY);
 
-    // antenna & dish 
-    line2(cx, cy+r*1.1, cx, cy+r*1.5);
-    double dx[3] = { cx-r*0.2, cx, cx+r*0.2 };
-    double dy[3] = { cy+r*1.5, cy+r*1.7, cy+r*1.5 };
-    plline(3, dx, dy);
+    // Antenna & dish 
+    line2(cx, cy+r*1.1, cx, cy+r*1.5); // Antenna
+    double antDishX[] = {cx-r*0.2, cx, cx+r*0.2};
+    double antDishY[] = {cy+r*1.5, cy+r*1.7, cy+r*1.5};
+    plline(antDishSize, antDishX, antDishY);
 
-    // landing legs & foot pads 
-    line2(cx-r*0.9, cy-r*0.2, cx-r*1.5, cy-r*1.0);
-    line2(cx+r*0.9, cy-r*0.2, cx+r*1.5, cy-r*1.0);
-    line2(cx-r*1.7, cy-r*1.0, cx-r*1.3, cy-r*1.0);
-    line2(cx+r*1.3, cy-r*1.0, cx+r*1.7, cy-r*1.0);
+    // Landing legs & foot pads 
+    line2(cx-r*0.9, cy-r*0.2, cx-r*1.5, cy-r*1.0); // Right leg
+    line2(cx+r*0.9, cy-r*0.2, cx+r*1.5, cy-r*1.0); // Left leg
+    
+    line2(cx-r*1.7, cy-r*1.0, cx-r*1.3, cy-r*1.0); // Right foot pad
+    line2(cx+r*1.3, cy-r*1.0, cx+r*1.7, cy-r*1.0); // left foot pad
 
-    // engine bell 
-    double ex[4] = { cx-r*0.3, cx+r*0.3, cx+r*0.2, cx-r*0.2 };
-    double ey[4] = { cy-r*0.2, cy-r*0.2, cy-r*0.7, cy-r*0.7 };
-    plline(4, ex, ey);
-    line2(ex[0], ey[0], ex[3], ey[3]);
+    // Engine bell - (bottom picec of the lander where the fire comes out)
+    double engBellX[] = {cx-r*0.3, cx+r*0.3, cx+r*0.2, cx-r*0.2};
+    double engBellY[] = {cy-r*0.2, cy-r*0.2, cy-r*0.7, cy-r*0.7};
+    plline(engBellSize, engBellX, engBellY);
+    line2(engBellX[0], engBellY[0], engBellX[3], engBellY[3]);
 
     pllsty(LS_SOLID);
 }
 
 /*
  * draw_flame: Draws the flame under the engine bell
+ *             Flames are created from a large and
+ *             small v shape at thebottom of the lander
  * double cx: Center x position of the lander
  * double cy: Center y position of the lander
- * double retro: Curent thrust % 
+ * double retro: Curent thrust %, used  to size
+ *               the flame
  * Return:N/A
  */
 void draw_flame(double cx, double cy, double retro)
 {
-    if (retro < 0.01) return;
+    static int bigFirePoint = 3, smallFirePoint = 3;
+    
+    if (retro < 0.01) return; // If theres less then 0.01% thrust then keep bar at 0%
     double r  = LANDER_R;
     double fl = r * retro / 0.55;
 
     plcol0(C_WHITE);
     pllsty(LS_SOLID);
-
-    double ox[3] = { cx-r*0.2, cx, cx+r*0.2 };
-    double oy[3] = { cy-r*0.7, cy-r*0.7-fl, cy-r*0.7 };
-    plline(3, ox, oy);
-
-    double ix[3] = { cx-r*0.1, cx, cx+r*0.1 };
-    double iy[3] = { cy-r*0.7, cy-r*0.7-fl*0.55, cy-r*0.7 };
-    plline(3, ix, iy);
+    
+    // Creates the larger V shape (Scaler value are arbitrary)
+    double bigFireX[] = {cx-r*0.2, cx, cx+r*0.2};
+    double bigFireY[] = {cy-r*0.7, cy-r*0.7-fl, cy-r*0.7};
+    plline(bigFirePoint, bigFireX, bigFireY);
+    
+    // Creates the small v shape (Scaler value are arbitrary)
+    double smallFireX[] = {cx-r*0.1, cx, cx+r*0.1 };
+    double smallFireY[] = {cy-r*0.7, cy-r*0.7-fl*0.55, cy-r*0.7};
+    plline(smallFirePoint, smallFireX, smallFireY);
 }
 
 /*
@@ -193,18 +263,22 @@ void draw_flame(double cx, double cy, double retro)
  */
 void draw_bar(double px, double py, double w, double h, double pct)
 {
+    static int borderPoints = 5, borderFillPoints = 4;
+    
     plcol0(C_WHITE);
     pllsty(LS_SOLID);
 
-    double bx[5] = { px, px+w, px+w, px, px };
-    double by[5] = { py, py,   py+h, py+h, py };
-    plline(5, bx, by);
+    // Draws the border around the fill area
+    double barBorderX[] = {px, px+w, px+w, px, px};
+    double barBorderY[] = {py, py, py+h, py+h, py};
+    plline(borderPoints, barBorderX, barBorderY);
 
+    // Draws the fill bar
     if (pct > 0.0) {
-        double fw = w * (pct > 100.0 ? 100.0 : pct) / 100.0;
-        double fx[4] = { px, px+fw, px+fw, px };
-        double fy[4] = { py, py,    py+h,  py+h };
-        plfill(4, fx, fy);
+        double fw = w * (pct > 100.0 ? 100.0 : pct) / 100.0; // Fill Width
+        double barBorderFillX[] = {px, px+fw, px+fw, px};
+        double barBorderFillY[] = {py, py, py+h, py+h};
+        plfill(borderFillPoints, barBorderFillX, barBorderFillY);
     }
 }
 
@@ -224,34 +298,18 @@ void lunar_display_init(void)
     
     pladv(0);
 }
+
  /*
-void lunar_display_update(double lander_x,
-                          double lander_y,
-                          double vx,
-                          double vy,
-                          double retro_pct,
-                          double lz,
-                          int status)
-                          {
-                              printf("inside update\n");
-                              plclear();
-                              printf("after pladv\n");
-                          }
-
-
-
  * lunar_display_update: Redraws the display each frame
  * double lander_x: lander x position
  * double Lander_y: lander y position
  * double vx: horizontal velocity of lander
  * double vy: vertical velocity
  * double retro_pct: retro thrust
- * int lz_pct: landing zone
+ * double lz_pct: landing zone
  * int status: status of lander(flying, landed, crashed)
  * Return: N/A
  */
-
-
 void lunar_display_update(double lander_x,
                           double lander_y,
                           double vx,
@@ -260,89 +318,102 @@ void lunar_display_update(double lander_x,
                           double lz,
                           int status)
 {
-    
+    char   buf[64];
     double lz_hw = lz * WORLD_W / 4.0;
     double retro_display = retro_pct * 100.0;
     double lz_display = lz * 100.0;
-    char   buf[64];
+    double bottomVportMaxY = WORLD_H * 0.20;
 
-    plclear();
+    plclear(); // Clears the screen to be redraw each frame
 
-    //Space viewport (top) 
-    plvpor(0.02, 0.98, 0.30, 0.93);
-    plwind(0.0, WORLD_W, 0.0, WORLD_H);
+    // Space viewport (top) 
+    plvpor(0.02, 0.98, 0.30, 0.93);         // Define the normalized coordinates (0.0 - 1.0) of the viewport - DO NOT CHANGE
+    plwind(X_MIN, WORLD_W, Y_MIN, WORLD_H); // Set the world coordinates for the edges of the viewport
 
     plcol0(C_WHITE);
     pllsty(LS_SOLID);
-    plbox("bc", 0, 0, "bc", 0, 0);
+    
+    // Creates a box with no tick marks on the X or Y axis
+    // Zeros are for auto tick spaceing, but without the "t" or "x" option they won't be drawn
+    //"bc", b - Draws the bottom and left edge of the box
+    //"bc", c - Draws the top and right edge of the box 
+    plbox("bc", 0, 0, "bc", 0, 0); 
 
-    plschr(0, 1.2);
-    plmtex("t", 0.9, 0.5, 0.5, "LUNAR LANDER");
-    plschr(0, 1.0);
+    plschr(CHR_HEIGHT_DEFAULT, 1.2);
+    plmtex("t", 0.9, 0.5, JUST_CENTER, "LUNAR LANDER");
+    plschr(CHR_HEIGHT_DEFAULT, 1.0); // Reset character height to default
 
+    // Draws the stars and surface terrain
     draw_stars();
     draw_surface(lz_hw);
+    // Draws the lander based on if its crashed or not
     draw_lander(lander_x, lander_y, status == LANDER_CRASHED);
-    if (status == LANDER_FLYING)
+    if (status == LANDER_FLYING){
         draw_flame(lander_x, lander_y, retro_pct);
+    }
 
-    // Overlay messages 
+    // Overlay messages when the lander lands
     plcol0(C_WHITE);
     pllsty(LS_SOLID);
-    if (status == LANDER_LANDED) {
-        plschr(0, 1.6);
-        plptex(50, 55, 1, 0, 0.5, "** GOOD LANDING! **");
-        plschr(0, 1.0);
-        plptex(50, 48, 1, 0, 0.5, "Press Start to restart");
+    if (status == LANDER_LANDED) { 
+        plschr(CHR_HEIGHT_DEFAULT, OM_TOP);                                     
+        plptex(OM_X, OM_TOP_Y, SLANT_DX, SLANT_DY, JUST_CENTER, "** GOOD LANDING! **");
+        plschr(CHR_HEIGHT_DEFAULT, OM_BOTTOM);
+        plptex(OM_X, OM_BOTTOM_Y, SLANT_DX, SLANT_DY, JUST_CENTER, "Press Start to restart");
     }
     if (status == LANDER_CRASHED) {
-        plschr(0, 1.6);
-        plptex(50, 55, 1, 0, 0.5, "** CRASHED! **");
-        plschr(0, 1.0);
-        plptex(50, 48, 1, 0, 0.5, "Press Start to restart");
+        plschr(CHR_HEIGHT_DEFAULT, OM_TOP);
+        plptex(OM_X, OM_TOP_Y, SLANT_DX, SLANT_DY, JUST_CENTER, "** CRASHED! **");
+        plschr(CHR_HEIGHT_DEFAULT, OM_BOTTOM);
+        plptex(OM_X, OM_BOTTOM_Y, SLANT_DX, SLANT_DY, JUST_CENTER, "Press Start to restart");
     }
 
-    // Instrument panel (bottom)
-    plvpor(0.02, 0.98, 0.01, 0.28);
-    plwind(0.0, 100.0, 0.0, 20.0);
+    // Instrument panel (bottom) - Shows simulation information in the bottom 20% of the screen
+    plvpor(0.02, 0.98, 0.01, 0.28);                 // Define the normalized coordinates (0.0 - 1.0) of the viewport - DO NOT CHANGE
+    plwind(X_MIN, WORLD_W, Y_MIN, bottomVportMaxY); // Set the world coordinates for the edges of the viewport
 
     plcol0(C_WHITE);
     pllsty(LS_SOLID);
+    
+    // Creates a box with no tick marks on the X or Y axis
+    // Zeros are for auto tick spaceing, but without the "t" or "x" option they won't be drawn
+    // "bc", b - Draws the bottom and left edge of the box
+    // "bc", c - Draws the top and right edge of the box 
     plbox("bc", 0, 0, "bc", 0, 0);
+    
+    plschr(CHR_HEIGHT_DEFAULT, IP_TEXT_SIZE);
 
-    // Divider
-    line2(50.0, 1.0, 50.0, 19.0);
+    // Divider - bottom display area to seperate the instrument panels
+    line2(HALF_WORLD_W, 1.0, HALF_WORLD_W, bottomVportMaxY);
 
-    // Retro 
-    plschr(0, 0.9);
-    plptex(2.0, 15.5, 1, 0, 0.0, "Retro");
+    // Retro - Shows the thrust percentage in value and visual form on the left side of instrument panel
+    plptex(BAR_X, RETRO_TEXT_Y, SLANT_DX, SLANT_DY, JUST_LEFT, "Retro");
     snprintf(buf, sizeof(buf), "%.0lf %%", retro_display);
-    plptex(22.0, 15.5, 1, 0, 0.0, buf);
-    draw_bar(2.0, 13.0, 44.0, 1.5, retro_display);
+    plptex(VAL_PCT, RETRO_TEXT_Y, SLANT_DX, SLANT_DY, JUST_LEFT, buf);
+    draw_bar(BAR_X, RETRO_BAR_Y, BAR_HEIGHT, BAR_WIDTH, retro_display);
 
-    // LZ-Width 
-    plptex(2.0, 10.5, 1, 0, 0.0, "LZ-Width");
+    // LZ-Width - Shows the landing zone percentage in value and visual form on the left side of instrument panel
+    plptex(BAR_X, LZ_TEXT_Y, SLANT_DX, SLANT_DY, JUST_LEFT, "LZ-Width");
     snprintf(buf, sizeof(buf), "%.0lf %%", lz_display);
-    plptex(22.0, 10.5, 1, 0, 0.0, buf);
-    draw_bar(2.0, 8.0, 44.0, 1.5, (double)lz_display);
+    plptex(VAL_PCT, LZ_TEXT_Y, SLANT_DX, SLANT_DY, JUST_LEFT, buf);
+    draw_bar(BAR_X, LZ_BAR_Y, BAR_HEIGHT, BAR_WIDTH, (double)lz_display);
 
-    // Vx / Vy
-    plptex(52.0, 15.5, 1, 0, 0.0, "Vx");
+    // Vx / Vy - Shows the X & Y velocity of the lander on the right side of the instrument panel
+    plptex(VX_VY_X, VX_X, SLANT_DX, SLANT_DY, JUST_LEFT, "Vx");
     snprintf(buf, sizeof(buf), "%+.2lf  m/sec", vx);
-    plptex(60.0, 15.5, 1, 0, 0.0, buf);
+    plptex(VX_VY_VAL_X, VX_X, SLANT_DX, SLANT_DY, JUST_LEFT, buf);
 
-    plptex(52.0, 10.5, 1, 0, 0.0, "Vy");
+    plptex(VX_VY_X, VX_Y, SLANT_DX, SLANT_DY, JUST_LEFT, "Vy");
     snprintf(buf, sizeof(buf), "%+.2lf  m/sec", vy);
-    plptex(60.0, 10.5, 1, 0, 0.0, buf);
+    plptex(VX_VY_VAL_X, VX_Y, SLANT_DX, SLANT_DY, JUST_LEFT, buf);
 
-    // status
+    // Status for bottom right corner of screen
     if (status == LANDER_LANDED || status == LANDER_CRASHED) {
-        plschr(0, 1.1);
-        plptex(86.0, 5.5, 1, 0, 0.5,
-               status == LANDER_LANDED ? "Good Job" : "Crashed!");
+        plschr(CHR_HEIGHT_DEFAULT, 1.1);
+        plptex(86.0, 5.5, SLANT_DX, SLANT_DY, JUST_CENTER, status == LANDER_LANDED ? "Good Job" : "Crashed!");
     }
 
-    plschr(0, 1.0);
+    plschr(CHR_HEIGHT_DEFAULT, 1.0); // Reset character height to default
 
 }
 /*

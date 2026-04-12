@@ -1,7 +1,7 @@
 /*
  * file: lunar_sim.c
  * Author: Lucas Farmer
- * date:
+ * Date: April 13, 2026
  * Description: Intakes simulation data such as the
  *              x and y positions of the lander, the
  *              horizontal and vertical velocities,
@@ -10,8 +10,7 @@
  *              lander.
  */
 
-// Build:  gcc -O2 -Wall Lunar_sim.c lunar_display.c $(pkg-config --cflags
-// --libs plplot) -lm -o lunar_lander
+// Build for graphics only:  gcc -O2 -Wall Lunar_sim.c lunar_display.c $(pkg-config --cflags --libs plplot) -lm -o lunar_lander
 
 #include "lunar_display.h"
 #include <stdio.h>
@@ -24,12 +23,11 @@
 int main(void)
 {
     setbuf(stdout, NULL);
-    lunar_display_init();
+    lunar_display_init(); // Initialzes the plplot window
 
     while (1)
     {
         FILE *file;
-
         double Lander_x;
         double Lander_y;
         double vx;
@@ -43,21 +41,25 @@ int main(void)
 
         while (status == LANDER_FLYING)
         {
-            while ((file = fopen("rocketInfo.txt", "r")) == NULL)
+            while ((file = fopen("rocketInfo.txt", "r")) == NULL) // Open the file with all the value from the physics program
             {
                 usleep(10000);
             }
-
-            fscanf(file, "%lf %lf %lf %lf %lf %lf",
-                   &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz);
-
+            
+            // Reads all the values from the physics file
+            fscanf(file, "%lf %lf %lf %lf %lf %lf", 
+                        &Lander_x, &Lander_y, &vx, &vy, &Retro, &Lz);
+            
+            // Close and delete the file
             fclose(file);
             remove("rocketInfo.txt");
 
+            // Calculates the half width of the landing zone, and the left and right edges
             lz_hw = Lz * WORLD_W / 4.0;
             lz_left = LZ_CENTER - lz_hw;
             lz_right = LZ_CENTER + lz_hw;
-
+            
+            // Checks if the lander is in the landing zone and moving less then 10.0 m/s
             if (Lander_y <= SURFACE_Y + LANDER_R &&
                 vy > -10.0 &&
                 Lander_x >= lz_left &&
@@ -70,11 +72,11 @@ int main(void)
                 status = LANDER_CRASHED;
             }
 
-            lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status);
-            //usleep(30000);
+            lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status); // Updates the simulation information every frame
+            
         }
 
-        lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status);
+        lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status); // Final frame for the overlay message 
         usleep(10000);
     }
 
