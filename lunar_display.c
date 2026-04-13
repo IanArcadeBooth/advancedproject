@@ -88,7 +88,7 @@ void line2(double x1, double y1, double x2, double y2)
     
     double x[] = { x1, x2 };
     double y[] = { y1, y2 };
-    plline(lineSize, x, y); //Draws a single line from given coordinates
+    plline(linePoints, x, y); //Draws a single line from given coordinates
 }
 
 /*
@@ -191,18 +191,18 @@ void draw_lander(double cx, double cy, int crashed)
     // Descent stage body (Middle piece)
     double dStageBodyX[] = {cx-r*0.9, cx+r*0.9, cx+r*0.6, cx-r*0.6, cx-r*0.9};
     double dStageBodyY[] = {cy-r*0.2, cy-r*0.2, cy+r*0.5, cy+r*0.5, cy-r*0.2};
-    plline(stageBodySize, dStageBodyX, dStageBodyY);
+    plline(stageBodyPoints, dStageBodyX, dStageBodyY);
 
     // Ascent stage body (Top piece)
     double aStageBodyX[] = {cx-r*0.4, cx+r*0.4, cx+r*0.4, cx-r*0.4, cx-r*0.4};
     double aStageBodyY[] = {cy+r*0.5, cy+r*0.5, cy+r*1.1, cy+r*1.1, cy+r*0.5};
-    plline(stageBodySize, aStageBodyX, aStageBodyY);
+    plline(stageBodyPoints, aStageBodyX, aStageBodyY);
 
     // Antenna & dish 
     line2(cx, cy+r*1.1, cx, cy+r*1.5); // Antenna
     double antDishX[] = {cx-r*0.2, cx, cx+r*0.2};
     double antDishY[] = {cy+r*1.5, cy+r*1.7, cy+r*1.5};
-    plline(antDishSize, antDishX, antDishY);
+    plline(antDishPoints, antDishX, antDishY);
 
     // Landing legs & foot pads 
     line2(cx-r*0.9, cy-r*0.2, cx-r*1.5, cy-r*1.0); // Right leg
@@ -214,7 +214,7 @@ void draw_lander(double cx, double cy, int crashed)
     // Engine bell - (bottom picec of the lander where the fire comes out)
     double engBellX[] = {cx-r*0.3, cx+r*0.3, cx+r*0.2, cx-r*0.2};
     double engBellY[] = {cy-r*0.2, cy-r*0.2, cy-r*0.7, cy-r*0.7};
-    plline(engBellSize, engBellX, engBellY);
+    plline(engBellPoints, engBellX, engBellY);
     line2(engBellX[0], engBellY[0], engBellX[3], engBellY[3]);
 
     pllsty(LS_SOLID);
@@ -399,13 +399,13 @@ void lunar_display_update(double lander_x,
     draw_bar(BAR_X, LZ_BAR_Y, BAR_HEIGHT, BAR_WIDTH, (double)lz_display);
 
     // Vx / Vy - Shows the X & Y velocity of the lander on the right side of the instrument panel
-    plptex(VX_VY_X, VX_X, SLANT_DX, SLANT_DY, JUST_LEFT, "Vx");
+    plptex(VX_VY_X, VX_Y, SLANT_DX, SLANT_DY, JUST_LEFT, "Vx");
     snprintf(buf, sizeof(buf), "%+.2lf  m/sec", vx);
-    plptex(VX_VY_VAL_X, VX_X, SLANT_DX, SLANT_DY, JUST_LEFT, buf);
-
-    plptex(VX_VY_X, VX_Y, SLANT_DX, SLANT_DY, JUST_LEFT, "Vy");
-    snprintf(buf, sizeof(buf), "%+.2lf  m/sec", vy);
     plptex(VX_VY_VAL_X, VX_Y, SLANT_DX, SLANT_DY, JUST_LEFT, buf);
+
+    plptex(VX_VY_X, VY_Y, SLANT_DX, SLANT_DY, JUST_LEFT, "Vy");
+    snprintf(buf, sizeof(buf), "%+.2lf  m/sec", vy);
+    plptex(VX_VY_VAL_X, VY_Y, SLANT_DX, SLANT_DY, JUST_LEFT, buf);
 
     // Status for bottom right corner of screen
     if (status == LANDER_LANDED || status == LANDER_CRASHED) {
