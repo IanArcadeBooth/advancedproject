@@ -1,0 +1,11 @@
+//serial_read.c
+gcc -o serial_read serial_read.c
+
+//physics.bin
+gcc -o physics.bin physics.c
+
+//graphics
+gcc -O2 -Wall Lunar_sim.c lunar_display.c $(pkg-config --cflags --libs plplot) -lm -o lunar_lander -Wextra
+
+//run.sh
+chmod +x run.sh
