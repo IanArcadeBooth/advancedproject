@@ -7,11 +7,11 @@
 * the Raspberry Pi to control the lunar lander simulation.
 */
 
-#define BUTTPIN1 2
-#define BUTTPIN2 3
-#define BUTTPIN3 4
-#define POTPIN1 A0
-#define POTPIN2 A1
+#define BUTTPIN1 2 //start
+#define BUTTPIN2 3 //left
+#define BUTTPIN3 4 //right
+#define POTPIN1 A0 //thrust
+#define POTPIN2 A1 //landing zone
 
 #define SMLDLAY 50
 
