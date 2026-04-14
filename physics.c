@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include "lunar_display.h"
 
+#define FILEOPENWAIT 10000
+
 const double gravity = 1.6;
 const double maxThrust = 2.98; 
 const double sideThrust = 0.116;
@@ -55,7 +57,7 @@ int main()
         {
             while ((fp = fopen("inputs.txt", "r")) == NULL)
             {
-                usleep(10000);
+                usleep(FILEOPENWAIT);
             } // Wait until file successfully opened
 
             fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
@@ -68,13 +70,13 @@ int main()
        
         clock_gettime(CLOCK_MONOTONIC, &T1);
 
-        // Main physics loop, runs until land/crash
+        // Main physics loop, runs until land/crash (no restart allowed until lander hits ground)
         while (yPos > SURFACE_Y + LANDER_R)
         {
             // Read Inputs
             while ((fp = fopen("inputs.txt", "r")) == NULL)
             {
-                usleep(10000);
+                usleep(FILEOPENWAIT);
             } // Wait until file successfully opened
 
             fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
@@ -101,7 +103,7 @@ int main()
                 
                 while (access("rocketInfo.txt", F_OK) == 0)
                 {
-                    usleep(10000);
+                    usleep(FILEOPENWAIT);
                 }
                 writeInfo(fp, &inputs, xPos, yPos, xVel, yVel);
                 break;
@@ -109,36 +111,41 @@ int main()
             
             writeInfo(fp, &inputs, xPos, yPos, xVel, yVel); 
         }
-
-        while (inputs.start == 0)
+        
+        //This section below is the restart behavior
+        //only reached after physics loop ends
+        while (inputs.start == 0) //wait until the start button is released (prevents restarts if held)
         {
             while ((fp = fopen("inputs.txt", "r")) == NULL)
             {
-                usleep(10000);
+                usleep(FILEOPENWAIT);
+            }
+            
+            //each time it has to read all inputs to determine if just the start is pressed
+            fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
+            fclose(fp);
+            remove("inputs.txt"); //allows serial_read to write again
+        }
+
+        while (inputs.start == 1) //wait until start button is pressed
+        {
+            while ((fp = fopen("inputs.txt", "r")) == NULL)
+            {
+                usleep(FILEOPENWAIT);
             }
 
             fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
             fclose(fp);
             remove("inputs.txt");
         }
-
-        while (inputs.start == 1)
-        {
-            while ((fp = fopen("inputs.txt", "r")) == NULL)
-            {
-                usleep(10000);
-            }
-
-            fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);
-            fclose(fp);
-            remove("inputs.txt");
-        }
-
+        
+        //wait until start button is released again
+        //full button cycle (released, press, release)
         while (inputs.start == 0)
         {
             while ((fp = fopen("inputs.txt", "r")) == NULL)
             {
-                usleep(10000);
+                usleep(FILEOPENWAIT);
             }
 
             fscanf(fp, "%d %d %d %lf %lf", &inputs.start, &inputs.left, &inputs.right, &inputs.thrust, &inputs.landZone);

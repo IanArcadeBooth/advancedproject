@@ -20,12 +20,14 @@
 #define WORLD_W 100.0
 #define LZ_CENTER 50.0
 
+#define FILEOPENWAIT 10000
+
 int main(void)
 {
     setbuf(stdout, NULL);
     lunar_display_init(); // Initialzes the plplot window
 
-    while (1)
+    while (1) //keep restarting the simulation after each completed run
     {
         FILE *file;
         double Lander_x;
@@ -39,11 +41,11 @@ int main(void)
         double lz_right;
         int status = LANDER_FLYING;
 
-        while (status == LANDER_FLYING)
+        while (status == LANDER_FLYING) //continue updating until the lander is on the ground
         {
             while ((file = fopen("rocketInfo.txt", "r")) == NULL) // Open the file with all the value from the physics program
             {
-                usleep(10000);
+                usleep(FILEOPENWAIT);
             }
             
             // Reads all the values from the physics file
@@ -77,7 +79,7 @@ int main(void)
         }
 
         lunar_display_update(Lander_x, Lander_y, vx, vy, Retro, Lz, status); // Final frame for the overlay message 
-        usleep(10000);
+        usleep(FILEOPENWAIT);
     }
 
     lunar_display_close();
